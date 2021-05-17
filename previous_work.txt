@@ -211,3 +211,229 @@ ggplot(aes(x='year', y='year_avg_imports'), data=small_arms_df.loc[filt_2010_202
          x = "Years",
          y = "Imports on Average")
 
+
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+# Only taking the Top 50 values from the data for later analysis and resetting index values
+
+arms_sales = arms_sales.head(50)
+arms_sales.reset_index(drop=True, inplace=True)
+# arms_sales
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+#================================================
+#============ Plots using all data ==============
+#================================================
+
+small_arms_df['year'] = small_arms_df['year'].astype(int)
+
+x = small_arms_df['year'].values
+y = small_arms_df['year_avg_imports'].values
+plt.scatter(x, y)
+plt.xlabel("Year")
+plt.ylabel("Average Imports")
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+ggplot(aes(x='year', y='year_avg_imports'), data=small_arms_df) + stat_smooth(method="lm") + geom_point(size=2) +\
+    labs(title="All Imports 1950-2020",
+         x = "Years",
+         y = "Imports")
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+#================================================
+#==== Filtering data for later graphing =========
+#================================================
+
+# All filtered data to use in individual graphs later.
+
+small_arms_df['year'] = small_arms_df['year'].astype(int)
+
+filt_1950_1960 = (small_arms_df['year'] >= 1950) & (small_arms_df['year'] <= 1960)
+filt_1960_1970 = (small_arms_df['year'] >= 1960) & (small_arms_df['year'] <= 1970)
+filt_1970_1980 = (small_arms_df['year'] >= 1970) & (small_arms_df['year'] <= 1980)
+filt_1980_1990 = (small_arms_df['year'] >= 1980) & (small_arms_df['year'] <= 1990)
+filt_1990_2000 = (small_arms_df['year'] >= 1990) & (small_arms_df['year'] <= 2000)
+filt_2000_2010 = (small_arms_df['year'] >= 2000) & (small_arms_df['year'] <= 2010)
+filt_2010_2020 = (small_arms_df['year'] >= 2010) & (small_arms_df['year'] <= 2020)
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+#================================================
+#==== Fitting a linear regression model =========
+#================================================
+
+# N_O_T_E: Same calculations from project3. I used the year_average as the dependant variable here, I was likely wrong, so please let me know your opinion. Honestly not good at this. The only relationship I know these variables have is that the number of imports will increase depending on the year (wartime). Don't we need some kind of expected values for fitting a model?
+
+small_arms_df['year'] = small_arms_df['year'].astype(int)
+
+years = np.array(small_arms_df['year'])
+imports = np.array(small_arms_df['imports'])
+LR = LinearRegression()
+LR.fit(years.reshape(-1,1), imports)
+prediction = LR.predict(years.reshape(-1,1))
+small_arms_df['importsPredict'] = pd.Series(prediction, index=small_arms_df.index)
+small_arms_df['residual'] = small_arms_df['imports'] - small_arms_df['importsPredict']
+
+# slope, intercept, r_value, p_value, std_err = stats.
+# ,→ linregress(indep_array,dep_array)
+# slope is just the coeff
+
+# RM = Regression Model
+RM = ols(formula='year ~ year_avg_imports', data=small_arms_df).fit() 
+RM.summary()
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+#================================================
+#====== Creating Bins for slicing years =========
+#================================================
+
+# Approach like from project2, cutting the data up and displaying from there. 
+
+bins = [1949, 1960, 1970, 1980, 1990, 2000, 2010, 2020]
+groups = ["1950-1960", "1960-1970", "1970-1980", "1980-1990", "1990-2000", "2000-2010", "2010-2020"]
+
+# Created new column that depicts which range in years a row falls into.
+small_arms_df['cut_year'] = pd.cut(small_arms_df.year, bins, labels=groups)
+
+small_arms_df
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+# Wrong af, but just doing it anyway.
+
+small_arms_df['year'] = small_arms_df['year'].astype(str)
+ggplot(aes(x='cut_year', y='residual'), data=small_arms_df) + geom_violin() + labs(title="Residuals vs. Year", x="Years", y="Residuals")
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+#================================================
+#=============== Multi graphs ===================
+#================================================
+
+# Imports in 10 year time periods
+
+small_arms_df['year'] = small_arms_df['year'].astype(int)
+
+ggplot(aes(x='year', y='year_avg_imports'), data=small_arms_df) + \
+geom_point() + \
+geom_smooth(method='lm') + \
+facet_grid("cut_year ~ .") +\
+    labs(title="Increments by 10 years",
+         x = "Years",
+         y = "Imports")
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+# Just another version of the graph above.
+
+ggplot(aes(x='year', y='year_avg_imports', color='cut_year'), data=small_arms_df) + stat_smooth(method="lm") + geom_point()
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+#================================================
+#=============== Individual graphs ==============
+#================================================
+
+small_arms_df['year'] = small_arms_df['year'].astype(int)
+
+ggplot(aes(x='year', y='year_avg_imports'), data=small_arms_df.loc[filt_1950_1960]) + stat_smooth(method="lm") + geom_point(size=1) +\
+    labs(title="All Imports 1950-1960",
+         x = "Years",
+         y = "Imports on Average")
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+ggplot(aes(x='year', y='year_avg_imports'), data=small_arms_df.loc[filt_1960_1970]) + stat_smooth(method="lm") + geom_point(size=1) +\
+    labs(title="All Imports 1960-1970",
+         x = "Years",
+         y = "Imports on Average")
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+ggplot(aes(x='year', y='year_avg_imports'), data=small_arms_df.loc[filt_1970_1980]) + stat_smooth(method="lm") + geom_point(size=1) +\
+    labs(title="All Imports 1970-1980",
+         x = "Years",
+         y = "Imports on Average")
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+ggplot(aes(x='year', y='year_avg_imports'), data=small_arms_df.loc[filt_1980_1990]) + stat_smooth(method="lm") + geom_point(size=1) +\
+    labs(title="All Imports 1980-1990",
+         x = "Years",
+         y = "Imports on Average")
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+ggplot(aes(x='year', y='year_avg_imports'), data=small_arms_df.loc[filt_1990_2000]) + stat_smooth(method="lm") + geom_point(size=1) +\
+    labs(title="All Imports 1990-2000",
+         x = "Years",
+         y = "Imports on Average")
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+ggplot(aes(x='year', y='year_avg_imports'), data=small_arms_df.loc[filt_2000_2010]) + stat_smooth(method="lm") + geom_point(size=1) +\
+    labs(title="All Imports 2000-2010",
+         x = "Years",
+         y = "Imports on Average")
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+ggplot(aes(x='year', y='year_avg_imports'), data=small_arms_df.loc[filt_2010_2020]) + stat_smooth(method="lm") + geom_point(size=1) +\
+    labs(title="All Imports 2010-2020",
+         x = "Years",
+         y = "Imports on Average")
+
+
+
+
+
+
+
+
+
+
+
+
